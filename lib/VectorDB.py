@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from EmbeddingModel import EmbeddingModel
+from lib.EmbeddingModel import EmbeddingModel
 
 class BaseVectorDB(ABC):
 	"""Abstract base class for all vector databases."""
@@ -91,7 +91,7 @@ class VectorDBManager:
     def process_documents(self, text_chunks):
         self.db.load_documents(text_chunks)
 
-    def perform_query(self, query_text):
+    def retrieve(self, query_text):
         return self.db.query(query_text)
 
     def cleanup(self):

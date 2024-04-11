@@ -1,6 +1,7 @@
 from pdfminer.high_level import extract_text
 from abc import ABC, abstractmethod
-import docx
+import docx, pptx 
+
 import os
 
 class DocLoader:
@@ -17,6 +18,8 @@ class DocLoader:
             self.loader = PDFDocLoader(doc_path)
         elif ext.lower() == '.docx':
             self.loader = DOCXDocLoader(doc_path)
+        elif ext.lower() =='.pptx':
+            self.loader = PPTXDocLoader(doc_path)
         else:
             raise NotImplementedError(f"No loader implemented for {ext} files.")
         
@@ -33,9 +36,9 @@ class DocLoader:
     
     def get_doc_text(self):
         return self.doc_text
-    
 
-class PDFDocLoader(DocLoader):
+
+class PDFDocLoader():
 
     def __init__(self, doc_path) -> None:
         self.doc_path = doc_path
@@ -43,7 +46,7 @@ class PDFDocLoader(DocLoader):
         return extract_text(self.doc_path)
 
         
-class DOCXDocLoader(DocLoader):
+class DOCXDocLoader():
     def __init__(self, doc_path) -> None:
         self.doc_path = doc_path
 
@@ -64,6 +67,18 @@ class DOCXDocLoader(DocLoader):
         return doc_text
         
 
+class PPTXDocLoader():
+    def __init__(self, doc_path) -> None:
+        self.doc_path = doc_path
 
-    
+    def read_contents(self):
+        doc_text = ""
+        prs = pptx.Presentation(self.doc_path)
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if shape.has_text_frame:
+                    for paragraph in shape.text_frame.paragraphs:
+                        for run in paragraph.runs:
+                            doc_text += run.text
 
+        return doc_text

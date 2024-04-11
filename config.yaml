@@ -1,0 +1,2 @@
+environment:
+  database_path: /home/ms5267@drexel.edu/DocuGeniusRAG/database/chromadb.db

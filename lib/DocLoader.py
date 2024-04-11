@@ -1,7 +1,4 @@
-from pdfminer.high_level import extract_text
 from abc import ABC, abstractmethod
-import docx, pptx 
-
 import os
 
 class DocLoader:
@@ -38,47 +35,32 @@ class DocLoader:
         return self.doc_text
 
 
-class PDFDocLoader():
-
+class MasterDocumentLoader(ABC):
     def __init__(self, doc_path) -> None:
         self.doc_path = doc_path
-    def read_contents(self):
-        return extract_text(self.doc_path)
+        self.doc_text = ""
 
-        
-class DOCXDocLoader():
-    def __init__(self, doc_path) -> None:
-        self.doc_path = doc_path
-
+    @abstractmethod
     def read_contents(self):
-        doc_text = ""
-        # Load the .docx file
+        pass
+
+class PDFDocLoader(MasterDocumentLoader):
+    def read_contents(self):
+        from pdfminer.high_level import extract_text
+        self.doc_text = extract_text(self.doc_path)
+        return self.doc_text
+
+class DOCXDocLoader(MasterDocumentLoader):
+    def read_contents(self):
+        import docx
         doc = docx.Document(self.doc_path)
+        self.doc_text = " ".join([para.text for para in doc.paragraphs])
+        # Handle table text similarly as shown previously
+        return self.doc_text
 
-        # Read paragraphs and tables
-        for para in doc.paragraphs:
-            doc_text+=para.text
-
-        for table in doc.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    doc_text+=cell.text
-
-        return doc_text
-        
-
-class PPTXDocLoader():
-    def __init__(self, doc_path) -> None:
-        self.doc_path = doc_path
-
+class PPTXDocLoader(MasterDocumentLoader):
     def read_contents(self):
-        doc_text = ""
+        import pptx
         prs = pptx.Presentation(self.doc_path)
-        for slide in prs.slides:
-            for shape in slide.shapes:
-                if shape.has_text_frame:
-                    for paragraph in shape.text_frame.paragraphs:
-                        for run in paragraph.runs:
-                            doc_text += run.text
-
-        return doc_text
+        self.doc_text = " ".join([run.text for slide in prs.slides for shape in slide.shapes if shape.has_text_frame for paragraph in shape.text_frame.paragraphs for run in paragraph.runs])
+        return self.doc_text

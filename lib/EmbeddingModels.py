@@ -1,4 +1,4 @@
-class Vectorize:
+class EmbeddingModels:
     def __init__(self) -> None:
 
         pass

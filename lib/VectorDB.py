@@ -56,7 +56,7 @@ class ChromaDB(BaseVectorDB):
             ids=ids
         )
 
-	def query(self, query_text, n_results=20):
+	def query(self, query_text, n_results):
 		"""Queries the vector DB based on the passed query_text
 
         Args:
@@ -91,8 +91,8 @@ class VectorDBManager:
     def process_documents(self, text_chunks):
         self.db.load_documents(text_chunks)
 
-    def retrieve(self, query_text):
-        return self.db.query(query_text)
+    def retrieve(self, query_text, n_results=20):
+        return self.db.query(query_text, n_results)
 
     def cleanup(self):
         self.db.delete_collection()

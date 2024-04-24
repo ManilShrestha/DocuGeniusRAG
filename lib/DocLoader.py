@@ -23,12 +23,43 @@ class DocLoader:
         self.doc_text = self.loader.read_contents()
     
     def chunkify_document(self, chunk_size=1000):
-        """This method will chunkify the document as per the chunk size
+        """This method will chunkify the document into chunks that do not exceed the specified number of characters and end at the end of a sentence.
 
         Args:
-            chunk_size (int, optional): This is number of characters per chunk. Defaults to 1000.
+            chunk_size (int, optional): The maximum number of characters per chunk. Defaults to 1000.
         """
-        chunks = [self.doc_text[i:i+chunk_size] for i in range(0, len(self.doc_text), chunk_size)]
+        import re
+        # Initialize variables
+        chunks = []
+        start = 0
+        
+        # Regular expression to find sentence boundaries
+        while start < len(self.doc_text):
+            # Check if remaining text is less than the chunk size
+            if len(self.doc_text) - start <= chunk_size:
+                chunks.append(self.doc_text[start:])
+                break
+            
+            # Find the last sentence ending within the current chunk size
+            end = start + chunk_size
+            # Search backwards from the chunk end for a sentence boundary
+            boundary = re.search(r'[.!?]\s', self.doc_text[start:end])
+            
+            while boundary is None and end > start:
+                end -= 1
+                boundary = re.search(r'[.!?]\s', self.doc_text[start:end])
+            
+            # If no boundary is found within the chunk, force end at chunk_size
+            if boundary is None:
+                end = start + chunk_size
+            else:
+                end = start + boundary.end()  # Adjust end to include the space after punctuation
+            
+            # Append the chunk from start to the new end
+            chunks.append(self.doc_text[start:end])
+            # Update start to the new end
+            start = end
+        
         return chunks
     
     def get_doc_text(self):

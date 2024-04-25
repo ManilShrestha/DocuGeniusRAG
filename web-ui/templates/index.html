@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PDF Viewer</title>
+<style>
+  #pdfContent { width: 50%; float: right; }
+</style>
+</head>
+<body>
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept="application/pdf">
+        <button type="button" onclick="uploadPDF()">Upload</button>
+    </form>
+    <div id="pdfContent">PDF content will appear here after upload.</div>
+
+    <script>
+    function uploadPDF() {
+        var form = document.getElementById('uploadForm');
+        var formData = new FormData(form);
+
+        fetch('/upload', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.text) {
+                document.getElementById('pdfContent').textContent = data.text;
+            } else {
+                document.getElementById('pdfContent').textContent = 'Error displaying PDF content.';
+            }
+        })
+        .catch(error => {
+            document.getElementById('pdfContent').textContent = 'Failed to load the PDF.';
+        });
+    }
+    </script>
+</body>
+</html>

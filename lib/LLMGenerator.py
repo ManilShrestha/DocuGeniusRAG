@@ -60,7 +60,7 @@ class LLMGenerator:
         else:
             raise ValueError(f"{model_type} embedder has not been implemented.")
 
-    def generate_answer(self, query, context):
+    def generate_answer(self, query, context, temperature=0):
         """Interface method to create embeddings through the embedder object.
 
         Args:
@@ -70,6 +70,6 @@ class LLMGenerator:
             List: Embeddings created by the embedder.
         """
         if isinstance(context, list):
-            return self.generator.generate_answer(query, context)
+            return self.generator.generate_answer(query, context, temperature=temperature)
         else:
             raise TypeError("Context should be list of strings.")

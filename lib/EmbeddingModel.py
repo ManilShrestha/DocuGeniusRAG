@@ -67,7 +67,8 @@ class BlockEntropyEmbedder(EmbeddingClient):
         sorted_pairs = sorted(zip(rank_scores, chunks), reverse=True, key=lambda x: x[0])
 
         # Extract the elements from the sorted pairs
-        return zip(*sorted_pairs)
+        reranked_rank_scores, reranked_similar_chunks = zip(*sorted_pairs)
+        return reranked_rank_scores, reranked_similar_chunks
 
 
 class EmbeddingModel:

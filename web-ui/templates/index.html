@@ -1,40 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>PDF Viewer</title>
-<style>
-  #pdfContent { width: 50%; float: right; }
-</style>
-</head>
-<body>
-    <form id="uploadForm" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept="application/pdf">
+{% extends 'base.html' %}
+
+{% block title %}PDF Viewer{% endblock %}
+
+{% block content %}
+<div id="uploadForm">
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" accept="application/pdf">
+        <span id="filenameDisplay"></span>
         <button type="button" onclick="uploadPDF()">Upload</button>
     </form>
-    <div id="pdfContent">PDF content will appear here after upload.</div>
+    <form id="queryForm">
+        <input type="text" name="query" id="queryInput" placeholder="Enter your question">
+        <button type="button" onclick="sendQuery()">Send</button>
+    </form>
+    <div id="responseContainer">
+        <p id="generatedText"></p>
+        <p id="referenceTexts"></p>
+    </div>
+</div>
 
-    <script>
-    function uploadPDF() {
-        var form = document.getElementById('uploadForm');
+<iframe id="pdfViewer"></iframe>
+
+
+<script>
+function uploadPDF() {
+        var form = document.querySelector('form');
         var formData = new FormData(form);
+
+        var filenameDisplay = document.getElementById('filenameDisplay');
+        var filename = fileInput.files[0].name; // Access the filename
+        filenameDisplay.textContent = filename;
 
         fetch('/upload', {
             method: 'POST',
             body: formData,
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.text) {
-                document.getElementById('pdfContent').textContent = data.text;
-            } else {
-                document.getElementById('pdfContent').textContent = 'Error displaying PDF content.';
-            }
+        .then(response => response.text())
+        .then(url => {
+            document.getElementById('pdfViewer').src = url;
         })
         .catch(error => {
-            document.getElementById('pdfContent').textContent = 'Failed to load the PDF.';
+            console.error('Error:', error);
         });
-    }
-    </script>
-</body>
-</html>
+    };
+
+
+function sendQuery() {
+    const query = document.getElementById('queryInput').value;
+    const filename = document.getElementById('filenameDisplay').textContent;
+    fetch('/retrieve_generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({query: query, filename:filename})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('generatedText').textContent = 'Generated Text: ' + data.generated_text;
+        document.getElementById('referenceTexts').textContent = 'References: ' + data.reference_texts;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+};
+</script>
+
+{% endblock %}

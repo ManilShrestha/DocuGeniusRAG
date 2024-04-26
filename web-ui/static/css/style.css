@@ -1,0 +1,77 @@
+/* General Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+}
+
+header, footer {
+    background-color: #f8f9fa;
+    color: #333;
+    text-align: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex; /* Ensuring the header is a flex container */
+    justify-content: space-between; /* Space between logo and nav bar */
+    align-items: center; /* Vertically center the items in the header */
+}
+
+/* Header styles */
+header .logo-container {
+    display: flex;
+    justify-content: flex-start; /* Logo to the left */
+}
+
+header .nav-container {
+    display: flex; /* Ensuring flex layout for navigation */
+    justify-content: flex-end; /* Align navigation to the right */
+}
+
+header img {
+    height: 80px; /* Adjust based on your logo's dimensions */
+}
+
+/* Main content area */
+main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+#uploadForm {
+    width: 50%;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+#pdfViewer {
+    flex: 1;
+    border: none;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}   
+
+nav ul li {
+    margin-right: 20px; /* Adjust spacing between nav items */
+}
+
+nav ul li a {
+    color: #1a2536;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+}
+
+nav ul li a:hover, nav ul li a:focus {
+    background-color: #c9caca;
+    border-radius: 4px;
+}

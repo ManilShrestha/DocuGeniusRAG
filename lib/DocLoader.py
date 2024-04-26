@@ -5,7 +5,6 @@ class DocLoader:
     def __init__(self, doc_path) -> None:
         self.doc_path = doc_path
         self.doc_text = ""
-
         if not os.path.exists(self.doc_path):
             raise FileNotFoundError(f"File {self.doc_path} does not exist.")
         

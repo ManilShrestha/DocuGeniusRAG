@@ -75,3 +75,9 @@ nav ul li a:hover, nav ul li a:focus {
     background-color: #c9caca;
     border-radius: 4px;
 }
+
+#filenameDisplay{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: small;
+    display: none;
+}

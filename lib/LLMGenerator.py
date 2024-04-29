@@ -24,21 +24,25 @@ class BlockEntropyGenerator(LLMGeneratorFactory):
 
 
     def generate_answer(self, query, context, temperature=0):
-        """Creates embeddings of the provided text chunks using BlockEntropy API.
+        """
+        Generates answer given query and context
 
         Args:
-            text_chunks (List[str]): List of text strings to be embedded.
+            query (str): Query to which answer to generate
+            context (List[str]): List of context strings
+            temperature: Temperature parameter (0 to 1). Default to 0.
 
         Returns:
-            List: A list of embeddings.
+            String: The response created by the API call.
         """
+
         context_combined = "\n".join(context)
         prompt = f"""Question: {query}
         Context: {context_combined}
         Generate an anwer based on the context provided.
         """
 
-        print(prompt)
+        # print(prompt)
 
         completion = self.client.chat.completions.create(
                         model=self.model,
@@ -63,14 +67,18 @@ class LLMGenerator:
             raise ValueError(f"{model_type} embedder has not been implemented.")
 
     def generate_answer(self, query, context, temperature=0):
-        """Interface method to create embeddings through the embedder object.
+        """
+        Generates answer given query and context
 
         Args:
-            text_chunks (List[str]): List of text strings to be embedded.
+            query (str): Query to which answer to generate
+            context (List[str]): List of context strings
+            temperature: Temperature parameter (0 to 1). Default to 0.
 
         Returns:
-            List: Embeddings created by the embedder.
+            String: The response created by the API call.
         """
+        
         if isinstance(context, list):
             return self.generator.generate_answer(query, context, temperature=temperature)
         else:

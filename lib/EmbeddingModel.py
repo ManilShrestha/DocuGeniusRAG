@@ -61,7 +61,7 @@ class BlockEntropyEmbedder(EmbeddingClient):
             input= pairs,
             model="be-bge-reranker"
         )
-        rank_scores = response.data[0].scores
+        rank_scores = response.data[0].scores # type: ignore
 
         # Zip the lists together and sort by rank in descending order
         sorted_pairs = sorted(zip(rank_scores, chunks), reverse=True, key=lambda x: x[0])

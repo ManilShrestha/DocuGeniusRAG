@@ -9,6 +9,7 @@ from lib.VectorDB import VectorDBManager
 
 from lib.EmbeddingModel import EmbeddingModel
 from lib.LLMGenerator import LLMGenerator
+from lib.Utilities import *
 
 app = Flask(__name__)
 
@@ -29,13 +30,35 @@ def index():
 def upload_file():
     file = request.files['file']
     if file:
+        
         # Save the uploaded file
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename) # type: ignore
         file.save(filepath)
-        
         uploadFileName=file.filename
+
+        if not uploadFileName:
+            # Error handling, if no filename, then it is placeholder
+            uploadFileName='placeholder'
+
+        log_info(f'uploadFilePath: {uploadFileName}')
         
-        print('Uploaded File Name: ', uploadFileName)
+        # Chunkify and store in vector DB
+        uploadFilePath = f'static/uploads/{uploadFileName}'
+        dl = DocLoader(uploadFilePath)
+        # log_info(dl.get_doc_text())
+        text_chunks = dl.chunkify_document(chunk_size=384)
+
+        for t in text_chunks:
+            print(len(t))
+
+        chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
+        
+        log_info(f'Loading the document into vector DB.')
+        
+        chroma_db.process_documents(text_chunks)
+        
+        log_info(f'The document has been chunked and stored in vectorDB.')
+
         return url_for('uploaded_file', filename=file.filename)
     return '', 404
 
@@ -50,30 +73,25 @@ def retrieve_generate():
     query = data.get('query')
     uploadFileName = data.get('filename')
 
-    print('uploadFilePath: ', uploadFileName)
-
-    uploadFilePath = f'static/uploads/{uploadFileName}'
-    
-    dl = DocLoader(uploadFilePath)
-
-    print(dl.get_doc_text())
-
-    text_chunks = dl.chunkify_document(chunk_size=384)
-    
+    log_info(f'uploadFilePath: {uploadFileName}')
     chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
-    chroma_db.process_documents(text_chunks)
-    similar_chunks = chroma_db.retrieve(query, n_results=20)
+    similar_chunks = chroma_db.retrieve(query, n_results=30)
 
-    rank_scores, reranked_similar_chunks  = EmbeddingModel().bge_rerank(query, similar_chunks[0]) # type: ignore
+    log_info(f'Similar chunks retrieved now re-ranking.')
+    log_info(f'Similar Chunks: {similar_chunks}')
     
-    chroma_db.cleanup()
+    embedding_model = EmbeddingModel()
+    rank_scores, reranked_similar_chunks  = embedding_model.bge_rerank(query, similar_chunks[0]) # type: ignore
+    
+    
+    # chroma_db.cleanup()
 
     references = list(reranked_similar_chunks)[:10]
-
+    log_info(f'Chunks reranked, now generating the answer.')
     generator = LLMGenerator()
     generated_answer = generator.generate_answer(query, references, temperature=0)
     
     return jsonify({'generated_text': generated_answer, 'reference_texts': "\n\n--".join(references)}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=9874)

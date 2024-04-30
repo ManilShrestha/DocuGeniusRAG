@@ -57,6 +57,9 @@ class BlockEntropyEmbedder(EmbeddingClient):
     
     def bge_rerank(self, query, chunks):
         pairs = [[query, x] for x in chunks]
+
+        print("Rerank pairs:", pairs)
+
         response = self.client.embeddings.create(
             input= pairs,
             model="be-bge-reranker"

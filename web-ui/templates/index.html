@@ -5,13 +5,21 @@
 {% block content %}
 <div id="uploadForm">
     <form method="post" enctype="multipart/form-data">
-        <input type="file" id="fileInput" name="file" accept="application/pdf">
-        <span id="filenameDisplay"></span>
-        <button type="button" onclick="uploadPDF()">Upload</button>
+        <div  id="UploadDiv" style="display: flex-inline">
+            <label for="fileInput" class="custom-file-upload">
+                Choose file
+            </label>
+            <input type="file" id="fileInput" name="file" accept="application/pdf" style="display: none;">
+            <button type="button" id="uploadButton" onclick="uploadPDF()">Upload</button>
+            <span id="filenameDisplay"></span>
+        </div>
+        
+        <div id="loadingIndicator" style="display: none;"><img src='static/Loading.gif'> <p id='processText'>Processing...</p></div>
     </form>
-    <form id="queryForm">
+    <hr id="formSeparator">
+    <form id="queryForm" class="flex-container">
         <input type="text" name="query" id="queryInput" placeholder="Enter your question">
-        <button type="button" onclick="sendQuery()">Send</button>
+        <button type="button" onclick="sendQuery()" id="submitQueryButton">Submit</button>
     </form>
     <div id="responseContainer">
         <p id="generatedText"></p>
@@ -23,26 +31,44 @@
 
 
 <script>
-function uploadPDF() {
+    function uploadPDF() {
         var form = document.querySelector('form');
         var formData = new FormData(form);
-
+        var uploadButton = document.getElementById('uploadButton');
+        var loadingIndicator = document.getElementById('loadingIndicator');
         var filenameDisplay = document.getElementById('filenameDisplay');
-        var filename = fileInput.files[0].name; // Access the filename
-        filenameDisplay.textContent = filename;
+        var fileInput = document.getElementById('fileInput');
 
-        fetch('/upload', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.text())
-        .then(url => {
-            document.getElementById('pdfViewer').src = url;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        if (fileInput.files.length > 0) {
+            var filename = fileInput.files[0].name; // Access the filename
+            filenameDisplay.textContent = filename;
+
+            // Disable the upload button and show the loading indicator
+            uploadButton.disabled = true;
+            loadingIndicator.style.display = 'flex';
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.text())
+            .then(url => {
+                document.getElementById('pdfViewer').src = url;
+                // Re-enable the upload button and hide the loading indicator
+                uploadButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // In case of error, also re-enable the button and hide the loading indicator
+                uploadButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+            });
+        } else {
+            alert('Please select a file to upload.');
+        }
     };
+
 
 
 function sendQuery() {
@@ -64,6 +90,16 @@ function sendQuery() {
         console.error('Error:', error);
     });
 };
+
+document.getElementById('fileInput').addEventListener('change', function() {
+    // Assuming you have a span or div to show the filename
+    var fileNameDisplay = document.getElementById('filenameDisplay');
+    if (this.files.length > 0) {
+        fileNameDisplay.textContent = this.files[0].name;
+    } else {
+        fileNameDisplay.textContent = 'Choose file';
+    }
+});
 </script>
 
 {% endblock %}

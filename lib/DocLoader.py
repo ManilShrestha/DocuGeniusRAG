@@ -22,44 +22,42 @@ class DocLoader:
         self.doc_text = self.loader.read_contents()
     
     def chunkify_document(self, chunk_size=1000):
-        """This method will chunkify the document into chunks that do not exceed the specified number of characters and end at the end of a sentence.
+        """
+        This method will chunkify the document into chunks based on a fixed number of characters,
+        with a 50% overlap between consecutive chunks.
 
         Args:
-            chunk_size (int, optional): The maximum number of characters per chunk. Defaults to 1000.
+            chunk_size (int, optional): The number of characters per chunk. Defaults to 1000.
         """
-        import re
         # Initialize variables
         chunks = []
         start = 0
-        
-        # Regular expression to find sentence boundaries
+        half_chunk = int(chunk_size / 2)
+
+        # Loop through the document and create chunks with 50% overlap
         while start < len(self.doc_text):
-            # Check if remaining text is less than the chunk size
-            if len(self.doc_text) - start <= chunk_size:
-                chunks.append(self.doc_text[start:])
-                break
-            
-            # Find the last sentence ending within the current chunk size
+            # Define the end of the current chunk
             end = start + chunk_size
-            # Search backwards from the chunk end for a sentence boundary
-            boundary = re.search(r'[.!?]\s', self.doc_text[start:end])
             
-            while boundary is None and end > start:
-                end -= 1
-                boundary = re.search(r'[.!?]\s', self.doc_text[start:end])
+            # Ensure the end does not exceed the document length
+            if end > len(self.doc_text):
+                end = len(self.doc_text)
             
-            # If no boundary is found within the chunk, force end at chunk_size
-            if boundary is None:
-                end = start + chunk_size
-            else:
-                end = start + boundary.end()  # Adjust end to include the space after punctuation
-            
-            # Append the chunk from start to the new end
+            # Append the current chunk to the chunks list
             chunks.append(self.doc_text[start:end])
-            # Update start to the new end
-            start = end
-        
+            
+            # Update the start for the next chunk to achieve 50% overlap
+            start += half_chunk
+            
+            # Break the loop if the next start plus the chunk size exceeds the document length
+            if start + chunk_size > len(self.doc_text):
+                # Check if there is any text left to consider as a final chunk
+                if start < len(self.doc_text):
+                    chunks.append(self.doc_text[start:])
+                break
+
         return chunks
+
     
     def get_doc_text(self):
         return self.doc_text

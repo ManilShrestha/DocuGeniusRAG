@@ -5,33 +5,35 @@ body, html {
     height: 100%;
     display: flex;
     flex-direction: column;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    background: #f4f4f4;
+    color: #333;
 }
 
 header, footer {
-    background-color: #f8f9fa;
+    background-color: #fff;
     color: #333;
     text-align: center;
     padding: 10px 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex; /* Ensuring the header is a flex container */
-    justify-content: space-between; /* Space between logo and nav bar */
-    align-items: center; /* Vertically center the items in the header */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Header styles */
 header .logo-container {
     display: flex;
-    justify-content: flex-start; /* Logo to the left */
+    align-items: center;
 }
 
 header .nav-container {
-    display: flex; /* Ensuring flex layout for navigation */
-    justify-content: flex-end; /* Align navigation to the right */
+    display: flex;
+    align-items: center;
 }
 
 header img {
-    height: 80px; /* Adjust based on your logo's dimensions */
+    height: 50px; /* Adjust based on your logo's dimensions */
 }
 
 /* Main content area */
@@ -46,22 +48,24 @@ main {
     padding: 20px;
     box-sizing: border-box;
     overflow-y: auto;
+    background-color: #fff;
+    border-right: 2px solid #eee;
 }
 
 #pdfViewer {
     flex: 1;
     border: none;
+    background-color: #fff;
 }
 
 nav ul {
     list-style: none;
     padding: 0;
-    margin: 0;
     display: flex;
-}   
+}
 
 nav ul li {
-    margin-right: 20px; /* Adjust spacing between nav items */
+    margin-right: 20px;
 }
 
 nav ul li a {
@@ -76,8 +80,133 @@ nav ul li a:hover, nav ul li a:focus {
     border-radius: 4px;
 }
 
-#filenameDisplay{
-    font-family: Arial, Helvetica, sans-serif;
+#filenameDisplay {
+    display: none; /* Hidden by default, shown after file selection */
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+#processText {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Upload button styling */
+#uploadButton, #queryForm button {
+    background-color: #006298;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
     font-size: small;
-    display: none;
+    height: max-content;
+}
+
+#uploadButton:disabled {
+    background-color: #ccc;
+}
+
+#uploadButton:hover, #queryForm button:hover {
+    background-color: #0056b3;
+}
+
+/* Loading Indicator */
+#loadingIndicator {
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+}
+
+#loadingIndicator img {
+    width: 30px;
+    margin-left: 10px;
+}
+
+/* Response Container */
+#responseContainer {
+    padding: 20px;
+    background-color: #fff;
+    margin-top: 20px;
+}
+
+
+/* Custom file upload button */
+.custom-file-upload {
+    background-color: #006298;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    font-size: small;
+}
+
+.custom-file-upload:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for filename display after file selection */
+#filenameDisplay {
+    display: inline-block; /* Shows next to the button after file selection */
+    margin-left: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Style for the text input field */
+#queryInput {
+    width: 90%; /* Makes the input field take the full width of its container */
+    padding: 12px 20px; /* Adds more padding for better text visibility and comfort */
+    margin-top: 10px; /* Adds space above the input field */
+    margin-bottom: 10px; /* Adds space below the input field */
+    margin-right:10px;
+    box-sizing: border-box; /* Includes padding and border in the width and height of the element */
+    border: 2px solid #ccc; /* Adds a border with a subtle color */
+    border-radius: 4px; /* Rounds the corners of the input field */
+    display: block; /* Ensures it fills the width of the container */
+    font-size: 16px; /* Increases the font size for better readability */
+    color: #333; /* Sets the text color */
+    background-color: #fff; /* Sets a white background for the input field */
+}
+
+#queryInput:focus {
+    border-color: #007bff; /* Changes the border color to a blue when the input is focused */
+    outline: none; /* Removes the default focus outline to use only the border color change */
+}
+
+hr {
+    border: none; /* Remove the default border */
+    height: 2px; /* Set the thickness of the horizontal line */
+    background-color: #ccc; /* Set the color of the line */
+    margin-top: 20px; /* Add some space above the line */
+    margin-bottom: 20px; /* Add some space below the line */
+  }
+
+  .flex-container {
+    display: flex;            /* Use flexbox to align children side by side */
+    align-items: center;      /* Align items vertically in the center */
+    justify-content: flex-start; /* Align items to the start of the flex container */
+    gap: 10px;                /* Optional: add space between the elements */
+}
+
+#queryInput {
+    flex-grow: 1;             /* Allow the input to take up the available space */
+    padding: 8px 10px;        /* Add some padding inside the input for better text visibility */
+}
+
+#submitQueryButton {
+    padding: 8px 16px;        /* Padding inside the button for better appearance */
+    cursor: pointer;          /* Change cursor to pointer to indicate it's clickable */
+    background-color: #007bff; /* Example: a nice blue background color */
+    color: white;             /* White text color */
+    border: none;             /* Remove default border */
+    border-radius: 4px;       /* Rounded corners for the button */
+}
+
+#submitQueryButton:hover {
+    background-color: #0056b3; /* Darker shade on hover for better user interaction feedback */
 }

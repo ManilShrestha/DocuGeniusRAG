@@ -1,5 +1,9 @@
 import fitz  # PyMuPDF
+from datetime import datetime
+import yaml
 
+# Path to your YAML file
+config_file_path = '../config.yaml'
 
 def highlight_text_in_pdf(file_path, output_path, sentences):
     """
@@ -44,3 +48,12 @@ def highlight_text_in_pdf(file_path, output_path, sentences):
     document.close()
 
     return output_path, highlighted_pages
+
+def log_info(log_message):
+	print( datetime.now().strftime("%H:%M:%S"),":\t ", log_message , "\n")
+
+
+# Function to load YAML configuration
+def load_config(path=config_file_path):
+    with open(path, 'r') as file:
+        return yaml.safe_load(file)

@@ -37,26 +37,28 @@ class ChromaDB(BaseVectorDB):
 		database_path = config['environment']['database_path']
 
 		self.db_path = database_path
-		self.connect()
 		self.embedding_model = EmbeddingModel()
+		self.existing_collections=[]
+
+		self.history_exists=False
+
+		self.connect()
 
 	def connect(self):
 		import chromadb
 
 		#TODO: Path of db needs to come from the config file.
 		self.client = chromadb.PersistentClient(path=self.db_path)
-
 		
-		# Check if the collection named self.collection_name exists. If yes clear it and then create.
-		
-		existing_collections = [collection.name for collection in self.client.list_collections()]
-		log_info(f"List of collections {existing_collections}")
+		self.existing_collections = [collection.name for collection in self.client.list_collections()]
+		log_info(f"List of collections {self.existing_collections}")
 
-		# if self.collection_name not in existing_collections:
+		if self.collection_name in self.existing_collections:
+			self.history_exists = True
+
 		# 	# Clear the collection if it exists
 		# 	log_info(f"Deleting existing collection: {self.collection_name}")
 		# 	self.delete_collection(self.collection_name)
-
 
 		self.collection = self.client.get_or_create_collection(
 			name=self.collection_name,
@@ -71,14 +73,20 @@ class ChromaDB(BaseVectorDB):
 		Args:
 			text_chunks (list[str]): text chunks of the document.
 		"""
-		embeddings = self.embedding_model.create_embeddings(text_chunks)
-		ids = [f'chunk{i}' for i in range(len(embeddings))]
+		print(self.collection_name, self.existing_collections, self.history_exists)
+
+		if not self.history_exists:
+			embeddings = self.embedding_model.create_embeddings(text_chunks)
+			ids = [f'chunk{i}' for i in range(len(embeddings))]
+			
+			self.collection.add(    
+				documents=text_chunks,
+				embeddings=embeddings,
+				ids=ids
+			)
 		
-		self.collection.add(    
-			documents=text_chunks,
-			embeddings=embeddings,
-			ids=ids
-		)
+		else:
+			log_info(f'{self.collection_name} already exists. Load not required' )
 
 	def query(self, query_text, n_results):
 		"""Queries the vector DB based on the passed query_text

@@ -57,7 +57,7 @@ def upload_file():
         
         chroma_db.process_documents(text_chunks)
         
-        log_info(f'The document has been chunked and stored in vectorDB.')
+        log_info(f'The document successfully stored in vectorDB.')
 
         return url_for('uploaded_file', filename=file.filename)
     return '', 404
@@ -72,26 +72,35 @@ def retrieve_generate():
     data = request.get_json()
     query = data.get('query')
     uploadFileName = data.get('filename')
+    uploadFilePath = f'static/uploads/{uploadFileName}'
+    highlightedFilePath = f'static/highlighted/{uploadFileName}'
+    num_of_references_to_use = 10
 
-    log_info(f'uploadFilePath: {uploadFileName}')
+    log_info(f'uploadFileName: {uploadFileName}')
     chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
     similar_chunks = chroma_db.retrieve(query, n_results=30)
 
     log_info(f'Similar chunks retrieved now re-ranking.')
-    log_info(f'Similar Chunks: {similar_chunks}')
     
     embedding_model = EmbeddingModel()
     rank_scores, reranked_similar_chunks  = embedding_model.bge_rerank(query, similar_chunks[0]) # type: ignore
-    
-    
-    # chroma_db.cleanup()
 
-    references = list(reranked_similar_chunks)[:10]
-    log_info(f'Chunks reranked, now generating the answer.')
+    references = list(reranked_similar_chunks)[:num_of_references_to_use]
+    log_info(f'Chunks reranked, now generating the answer...')
+
     generator = LLMGenerator()
     generated_answer = generator.generate_answer(query, references, temperature=0)
+    log_info(f'Answer generated, highlighting the chunks...')
+
+    output_path, highlighted_pages = highlight_text_in_pdf(uploadFilePath, highlightedFilePath, references)
+    highlighted_page_nums = list(highlighted_pages.keys())
+    log_info(f'Chunks have been highlighted and stored in: {output_path}. They are in pages: {highlighted_page_nums}')
     
-    return jsonify({'generated_text': generated_answer, 'reference_texts': "\n\n--".join(references)}), 200
+    return jsonify({
+        'generated_text': generated_answer,
+        'highlighted_page_nums': highlighted_page_nums,
+        'highlighted_file_path': output_path
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=9874)

@@ -13,12 +13,15 @@ class BlockEntropyGenerator(LLMGeneratorFactory):
     
     def __init__(self):
         load_dotenv()
-        self.model = 'be-pro-v1.0'
+        self.model='be-research-llama3-70b'
+        # self.model='be-pro-v1.0'
+
         api_key = os.getenv("BE_API_KEY")
         base_url = 'https://api.blockentropy.ai/v1'
 
         try:
             self.client = OpenAI(base_url=base_url, api_key=api_key)
+            # self.client = OpenAI(api_key=api_key)
         except Exception as e:
             raise ConnectionError("Failed to connect to BlockEntropy API. Please check your API key and network connection.") from e
 
@@ -42,7 +45,7 @@ class BlockEntropyGenerator(LLMGeneratorFactory):
         Generate an anwer based on the context provided.
         """
 
-        # print(prompt)
+        print(prompt)
 
         completion = self.client.chat.completions.create(
                         model=self.model,

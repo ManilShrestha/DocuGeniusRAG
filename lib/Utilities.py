@@ -1,9 +1,20 @@
 import fitz  # PyMuPDF
 from datetime import datetime
 import yaml
+import unicodedata
+
 
 # Path to your YAML file
-config_file_path = '../config.yaml'
+config_file_path = '/home/ms5267@drexel.edu/DocuGeniusRAG/config.yaml'
+
+
+
+def normalize_text(text):
+    text = unicodedata.normalize('NFKC', text)  # Normalize Unicode characters
+    text = text.replace('-\n', '').replace('-\r', '').replace('\n', ' ').replace('\t', ' ')
+    # text = ' '.join(text.split())  # Remove extra spaces
+    return text 
+
 
 def highlight_text_in_pdf(file_path, output_path, sentences):
     """
@@ -27,6 +38,8 @@ def highlight_text_in_pdf(file_path, output_path, sentences):
         # Check each sentence in the list
         for sentence in sentences:
             # Search for the sentence in the current page
+            sentence = normalize_text(sentence)
+
             text_instances = page.search_for(sentence)
             
             # If text instances are found, highlight them

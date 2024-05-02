@@ -28,6 +28,9 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    config = load_config(config_file_path)
+    chunk_size_doc = config['environment']['chunk_size']
+
     files = request.files.getlist('files[]')  # Get a list of all files uploaded
     if not files:
         return "No files uploaded", 400  # Return error if no files were uploaded
@@ -50,7 +53,7 @@ def upload_file():
         uploadFilePath = f'static/uploads/{uploadFileName}'
         dl = DocLoader(uploadFilePath)
         # log_info(dl.get_doc_text())
-        text_chunks = dl.chunkify_document(chunk_size=384)
+        text_chunks = dl.chunkify_document(chunk_size=chunk_size_doc)
 
         chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
         
@@ -69,7 +72,10 @@ def uploaded_file(filename):
 
 @app.route('/retrieve_generate', methods=['POST'])
 def retrieve_generate():
-    num_of_references_to_use = 10
+    config = load_config(config_file_path)
+    num_of_references_to_use = config['environment']['max_num_refs']
+    vectordb_max_return_num_chunks = config['environment']['vectordb_max_return_num_chunks']
+    # num_of_references_to_use = 10
 
     data = request.get_json()
     query = data.get('query')
@@ -82,7 +88,7 @@ def retrieve_generate():
     for uploadFileName in uploadFileNames:
         log_info(f'uploadFileName: {uploadFileName}')
         chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
-        similar_chunks = chroma_db.retrieve(query, n_results=30)
+        similar_chunks = chroma_db.retrieve(query, n_results=vectordb_max_return_num_chunks)
         
         if similar_chunks:
             similar_chunks_dict[uploadFileName] = similar_chunks
@@ -123,7 +129,7 @@ def retrieve_generate():
         highlighted_page_nums.extend([(page, source) for page in pages])
 
     log_info('Highlighting complete. Preparing response...')
-    log_info(f'{highlighted_page_nums}, {output_paths}')
+    # log_info(f'{highlighted_page_nums}, {output_paths}')
 
     return jsonify({
         'generated_text': generated_answer,

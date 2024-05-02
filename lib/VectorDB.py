@@ -33,6 +33,7 @@ class BaseVectorDB(ABC):
 class ChromaDB(BaseVectorDB):
 	def __init__(self, collection_name='test_collection'):
 		collection_name = preprocess_collection_name(collection_name)
+
 		super().__init__('chromadb', collection_name)
 		config = load_config(config_file_path)
 		database_path = config['environment']['database_path']
@@ -52,7 +53,7 @@ class ChromaDB(BaseVectorDB):
 		self.client = chromadb.PersistentClient(path=self.db_path)
 		
 		self.existing_collections = [collection.name for collection in self.client.list_collections()]
-		log_info(f"\nList of collections {self.existing_collections}\n")
+		log_info(f"List of collections {self.existing_collections}\n")
 
 		if self.collection_name in self.existing_collections:
 			self.history_exists = True

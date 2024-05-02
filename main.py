@@ -15,16 +15,19 @@ def log_msg(message):
     print(f'{formatted_time} : {message}')
 
 
-source_filename = 'NavalResearchCoverLetter.pdf' #'CVPR-Paper.pdf' #'case_study_medicine_llm.pdf'
+source_filename = 'E3.pdf' #'CVPR-Paper.pdf' #'case_study_medicine_llm.pdf'
 dl = DocLoader('data/'+source_filename)
 # dl = DocLoader('data/FPA Review.docx')
 # dl = DocLoader('data/Candidacy-Manil-Presentation-Final.pptx')
 
 
-query  = "Who is Manil?"
+query  = "What is E3?"
 print(dl.get_doc_text())
 
-text_chunks = dl.chunkify_document(chunk_size=256)
+text_chunks = dl.chunkify_document(chunk_size=512)
+
+for t in text_chunks:
+    print(len(t))
 
 log_msg("Loading into vector db...")
 chroma_db = VectorDBManager(db_type='chromadb',collection_name=source_filename)
@@ -38,7 +41,7 @@ similar_chunks = chroma_db.retrieve(query, n_results=20)
 log_msg("Reranking chunks...")
 rank_scores, reranked_similar_chunks  = EmbeddingModel().bge_rerank(query, similar_chunks[0])
 print(list(reranked_similar_chunks)[:10])
-chroma_db.cleanup()
+# chroma_db.cleanup(source_filename)
 
 log_msg("Generating answer...")
 generator = LLMGenerator()

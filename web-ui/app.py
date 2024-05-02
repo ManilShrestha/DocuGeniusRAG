@@ -28,9 +28,13 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    file = request.files['file']
-    if file:
-        
+    files = request.files.getlist('files[]')  # Get a list of all files uploaded
+    if not files:
+        return "No files uploaded", 400  # Return error if no files were uploaded
+    
+    log_info(f"Files sent from front end: {files}")
+    
+    for file in files:
         # Save the uploaded file
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename) # type: ignore
         file.save(filepath)
@@ -48,9 +52,6 @@ def upload_file():
         # log_info(dl.get_doc_text())
         text_chunks = dl.chunkify_document(chunk_size=384)
 
-        for t in text_chunks:
-            print(len(t))
-
         chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
         
         log_info(f'Loading the document into vector DB.')
@@ -59,8 +60,8 @@ def upload_file():
         
         log_info(f'The document successfully stored in vectorDB.')
 
-        return url_for('uploaded_file', filename=file.filename)
-    return '', 404
+    return url_for('uploaded_file', filename=file.filename)
+    
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -68,39 +69,68 @@ def uploaded_file(filename):
 
 @app.route('/retrieve_generate', methods=['POST'])
 def retrieve_generate():
-    
-    data = request.get_json()
-    query = data.get('query')
-    uploadFileName = data.get('filename')
-    uploadFilePath = f'static/uploads/{uploadFileName}'
-    highlightedFilePath = f'static/highlighted/{uploadFileName}'
     num_of_references_to_use = 10
 
-    log_info(f'uploadFileName: {uploadFileName}')
-    chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
-    similar_chunks = chroma_db.retrieve(query, n_results=30)
+    data = request.get_json()
+    query = data.get('query')
+    uploadFileNames = data.get('filenames')
+    similar_chunks_dict = {}
 
-    log_info(f'Similar chunks retrieved now re-ranking.')
+    log_info(f"Upload Files are:{uploadFileNames}")
     
-    embedding_model = EmbeddingModel()
-    rank_scores, reranked_similar_chunks  = embedding_model.bge_rerank(query, similar_chunks[0]) # type: ignore
+    # Retrieving similar chunks from all the files
+    for uploadFileName in uploadFileNames:
+        log_info(f'uploadFileName: {uploadFileName}')
+        chroma_db = VectorDBManager(db_type='chromadb',collection_name=uploadFileName)
+        similar_chunks = chroma_db.retrieve(query, n_results=30)
+        
+        if similar_chunks:
+            similar_chunks_dict[uploadFileName] = similar_chunks
+            log_info(f'Similar chunks retrieved now re-ranking.')
+        else:
+            return jsonify({'error': 'No similar chunks retrieved.'}), 500
+    
 
-    references = list(reranked_similar_chunks)[:num_of_references_to_use]
+    # Need to rerank the 30 chunks per file that was retrieved to be re-ranked and top-K selected for generation.
+    embedding_model = EmbeddingModel()
+    all_reranked = []
+    for uploadFileName, chunks in similar_chunks_dict.items():
+        for chunk in chunks:
+            rank_scores, reranked_similar_chunks = embedding_model.bge_rerank(query, chunk)
+            all_reranked.extend([(score, chunk, uploadFileName) for 
+                                 score, chunk in zip(rank_scores, reranked_similar_chunks)])
+
+    # Sort all reranked results by score, slice to use only the top N references
+    all_reranked.sort(key=lambda x: x[0], reverse=True)
+    # print("ALL_RERANKED ",all_reranked)
+    references = [chunk for _, chunk, _ in all_reranked[:num_of_references_to_use]]
+    reference_source = [source for _, _, source in all_reranked[:num_of_references_to_use]]
+
     log_info(f'Chunks reranked, now generating the answer...')
 
+    # Generate the response based on the top-k reference chunks
     generator = LLMGenerator()
     generated_answer = generator.generate_answer(query, references, temperature=0)
-    log_info(f'Answer generated, highlighting the chunks...')
-
-    output_path, highlighted_pages = highlight_text_in_pdf(uploadFilePath, highlightedFilePath, references)
-    highlighted_page_nums = list(highlighted_pages.keys())
-    log_info(f'Chunks have been highlighted and stored in: {output_path}. They are in pages: {highlighted_page_nums}')
+    log_info('Answer generated. Highlighting the chunks...')
     
+    output_paths = []
+    highlighted_page_nums = []
+    # print(set(reference_source),references)
+
+    for source in set(reference_source):
+        output_path, pages = highlight_text_in_pdf(f'static/uploads/{source}', f'static/highlighted/{source}', references,10)
+        output_paths.append((output_path, pages))
+        highlighted_page_nums.extend([(page, source) for page in pages])
+
+    log_info('Highlighting complete. Preparing response...')
+    log_info(f'{highlighted_page_nums}, {output_paths}')
+
     return jsonify({
         'generated_text': generated_answer,
         'highlighted_page_nums': highlighted_page_nums,
-        'highlighted_file_path': output_path
+        'highlighted_file_paths': output_paths
     }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=9874)
+    # app.run(port=9874)

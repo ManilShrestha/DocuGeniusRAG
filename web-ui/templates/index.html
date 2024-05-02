@@ -5,16 +5,19 @@
 {% block content %}
 <div id="uploadForm">
     <form method="post" enctype="multipart/form-data">
-        <div  id="UploadDiv" style="display: flex-inline">
+        <div id="UploadDiv" style="display: flex-inline">
             <label for="fileInput" class="custom-file-upload">
-                Choose file
+                Choose file(s)
             </label>
-            <input type="file" id="fileInput" name="file" accept="application/pdf" style="display: none;">
+            <input type="file" id="fileInput" name="file" accept="application/pdf" multiple style="display: none;">
             <button type="button" id="uploadButton" onclick="uploadPDF()">Upload</button>
             <span id="filenameDisplay"></span>
+            <div id="loadingIndicator" style="display: none;">
+                    <img src='static/Loading.gif'> 
+                    <p id='processText'>Processing...</p>
+            </div>
         </div>
         
-        <div id="loadingIndicator" style="display: none;"><img src='static/Loading.gif'> <p id='processText'>Processing...</p></div>
     </form>
     <hr id="formSeparator">
 
@@ -28,17 +31,33 @@
 
 
 <script>
+    // Function that loads the pdf(s) information in the vector DB
     function uploadPDF() {
-        var form = document.querySelector('form');
-        var formData = new FormData(form);
+        var formData = new FormData();
         var uploadButton = document.getElementById('uploadButton');
         var loadingIndicator = document.getElementById('loadingIndicator');
         var filenameDisplay = document.getElementById('filenameDisplay');
         var fileInput = document.getElementById('fileInput');
+        var files = fileInput.files;
 
-        if (fileInput.files.length > 0) {
-            var filename = fileInput.files[0].name; // Access the filename
-            filenameDisplay.textContent = filename;
+        if (files.length > 0) {
+            let fileNames = [];
+
+            if (files.length === 1) {
+                filenameDisplay.textContent = files[0].name; // Display the single file name
+                fileNames.push(files[0].name);
+            } else {
+                filenameDisplay.textContent = files.length + ' files selected'; // Display a generic message for multiple files
+                Array.from(files).forEach(file => fileNames.push(file.name));
+            }
+
+            // Store file names in localStorage
+            localStorage.setItem('uploadedFileNames', JSON.stringify(fileNames));
+
+            // Append all selected files to formData
+            Array.from(files).forEach((file, index) => {
+                formData.append('files[]', file, file.name); // Use 'files[]' to denote it's an array of files
+            });
 
             // Disable the upload button and show the loading indicator
             uploadButton.disabled = true;
@@ -51,120 +70,128 @@
             .then(response => response.text())
             .then(url => {
                 document.getElementById('pdfViewer').src = url;
-                // Re-enable the upload button and hide the loading indicator
                 uploadButton.disabled = false;
                 loadingIndicator.style.display = 'none';
+                // Add a message with uploaded file names
+                const fileListMessage = 'Uploaded files: <ul><li>' + fileNames.join('<li>');
+                addMessage(fileListMessage, 'server'); 
+
             })
             .catch(error => {
                 console.error('Error:', error);
-                // In case of error, also re-enable the button and hide the loading indicator
                 uploadButton.disabled = false;
                 loadingIndicator.style.display = 'none';
             });
         } else {
             alert('Please select a file to upload.');
         }
-    };
-
-
-document.getElementById('fileInput').addEventListener('change', function() {
-    // Assuming you have a span or div to show the filename
-    var fileNameDisplay = document.getElementById('filenameDisplay');
-    if (this.files.length > 0) {
-        fileNameDisplay.textContent = this.files[0].name;
-    } else {
-        fileNameDisplay.textContent = 'Choose file';
     }
-});
 
-document.getElementById('chatInput').addEventListener('keydown', function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault(); // Prevent form submission
-
-        var message = this.value.trim();
-        if (message) {
-            addMessage(message, 'user');
-            this.value = ''; // Clear input after sending
-            sendQuery(message); // Invoke sendQuery with the user's message
-        }
-    }
-});
-
-function addMessage(htmlContent, sender) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', sender === 'server' ? 'server-message' : 'user-message');
-    messageElement.innerHTML = htmlContent; // using innerHTML since HTML content may include links
-    document.getElementById('messages').appendChild(messageElement);
-    messageElement.scrollIntoView();
-}
-
-function sendQuery(message) {
-    const filename = document.getElementById('filenameDisplay') ? document.getElementById('filenameDisplay').textContent : 'defaultFile.pdf';
-
-    // Add loading GIF to the chat
-    addMessageWithGIF();
-
-    fetch('/retrieve_generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({query: message, filename: filename})
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Remove the loading GIF
-        removeMessageWithGIF();
-
-        // Displaying the generated text as a server message
-        addMessage(data.generated_text, 'server');
-
-        // Update PDF viewer to show highlighed document
-        document.getElementById('pdfViewer').src = data.highlighted_file_path;
-
-        // Assuming 'highlighted_page_nums' is part of the response and contains an array of page numbers
-        if (data.highlighted_page_nums && data.highlighted_page_nums.length > 0) {
-            const pageLinksMessage = 'Reference text chunks in pages: ' + 
-                data.highlighted_page_nums.map(pageNum => 
-                    `<a href="#" onclick="event.preventDefault(); loadPage('${data.highlighted_file_path}', ${pageNum});">${pageNum}</a>`
-                ).join(', ');
-            addMessage(pageLinksMessage, 'server');
-        }
-
+    // Beautification of the upload file button. Default is hideous
+    document.getElementById('fileInput').addEventListener('change', function() {
+        var fileNameDisplay = document.getElementById('filenameDisplay');
+        if (this.files.length == 1) {
+            fileNameDisplay.textContent = this.files[0].name;
+        }else if (this.files.length > 1){
+            fileNameDisplay.textContent = this.files.length + ' files selected';
+        } 
         
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        removeMessageWithGIF();
-        addMessage('Failed to retrieve data.', 'server');
+        else {
+            fileNameDisplay.textContent = 'Choose file';
+        }
     });
-}
 
-function loadPage(pdfPath, pageNumber) {
-    const pdfViewer = document.getElementById('pdfViewer');
+    // Event handler for backend interactions and chatbox messages.
+    document.getElementById('chatInput').addEventListener('keydown', function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Prevent form submission
 
-    const timestamp = new Date().getTime(); // Current time as a timestamp
+            var message = this.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                this.value = ''; // Clear input after sending
+                sendQuery(message); // Invoke sendQuery with the user's message
+            }
+        }
+    });
 
-    pdfViewer.src = `${pdfPath}?t=${timestamp}#page=${pageNumber}`;
-    console.log(`Loading PDF: ${pdfViewer.src}`);
+    // Adds the message in the chatbox
+    function addMessage(htmlContent, sender) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', sender === 'server' ? 'server-message' : 'user-message');
+        messageElement.innerHTML = htmlContent; // using innerHTML since HTML content may include links
+        document.getElementById('messages').appendChild(messageElement);
+        messageElement.scrollIntoView();
+    }
 
-    console.log(`${pdfPath}#page=${pageNumber}`)
-    console.log(pdfViewer.src)
-}
+    // Sends the query to backend for retrieval and generation purposes
+    function sendQuery(message) {
+        const storedFilenames = JSON.parse(localStorage.getItem('uploadedFileNames'));
+        const filenames = storedFilenames ? storedFilenames : ['defaultFile.pdf']; // Use default if no files stored
+
+        // Add loading GIF to the chat
+        addMessageWithGIF();
+
+        fetch('/retrieve_generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({query: message, filenames: filenames})
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove the loading GIF
+            removeMessageWithGIF();
+
+            // Displaying the generated text as a server message
+            addMessage(data.generated_text, 'server');
+
+            // // Update PDF viewer to show highlighed document
+            // document.getElementById('pdfViewer').src = data.highlighted_file_path;
+            
+            console.log(data.highlighted_file_paths, data.highlighted_page_nums)
+
+            // Assuming 'highlighted_page_nums' is part of the response and contains an array of page numbers
+            if (data.highlighted_page_nums && data.highlighted_page_nums.length > 0) {
+                const pageLinksMessage = 'References: ' + 
+                    data.highlighted_page_nums.map(fileInfo => 
+                        `<a href="#" onclick="event.preventDefault(); loadPage('${fileInfo[1]}', ${fileInfo[0]});">[${fileInfo[1]}:${fileInfo[0]}]</a>`
+                    ).join(', ');
+                addMessage(pageLinksMessage, 'server');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            removeMessageWithGIF();
+            addMessage('Failed to retrieve data.', 'server');
+        });
+    }
+
+    // Loads the page of pdf. This is to show the reference chunks
+    function loadPage(pdfFileName, pageNumber) {
+        console.log(pdfFileName, pageNumber)
+        pdfPath = 'static/highlighted/'+ pdfFileName
+        const pdfViewer = document.getElementById('pdfViewer');
+        const timestamp = new Date().getTime(); // Current time as a timestamp
+        pdfViewer.src = `${pdfPath}?t=${timestamp}#page=${pageNumber}`;
+    }
 
 
-function addMessageWithGIF() {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', 'loading-message');
-    messageElement.innerHTML = '<img src="static/typing_loading.gif" alt="Loading..." style="width: 40px; height: 40px;"/>';
-    document.getElementById('messages').appendChild(messageElement);
-    messageElement.scrollIntoView({ behavior: 'smooth' });
-}
+    // Message that shows the typing gif while retrieve and generate process
+    function addMessageWithGIF() {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'loading-message');
+        messageElement.innerHTML = '<img src="static/typing_loading.gif" alt="Loading..." style="width: 40px; height: 40px;"/>';
+        document.getElementById('messages').appendChild(messageElement);
+        messageElement.scrollIntoView({ behavior: 'smooth' });
+    }
 
-function removeMessageWithGIF() {
-    const loadingMessages = document.querySelectorAll('.loading-message');
-    loadingMessages.forEach(msg => msg.remove());
-}
+    // Removes the typing gif after the LLM generates answer
+    function removeMessageWithGIF() {
+        const loadingMessages = document.querySelectorAll('.loading-message');
+        loadingMessages.forEach(msg => msg.remove());
+    }
 
 
 </script>

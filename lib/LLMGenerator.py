@@ -44,8 +44,7 @@ class BlockEntropyGenerator(LLMGeneratorFactory):
         Context: {context_combined}
         Generate an anwer based on the context provided.
         """
-
-        print(prompt)
+        # print(prompt)
 
         completion = self.client.chat.completions.create(
                         model=self.model,

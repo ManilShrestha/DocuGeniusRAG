@@ -59,7 +59,36 @@ The links direct you to the page and highlights the text chunks used to generate
 
 The Data Flow Diagram (DFD) provides a visual representation of the data processing within our Retrieval-Augmented Generation (RAG) application. This diagram helps to illustrate the flow of data between the application's components and how these components interact to process user queries, retrieve relevant information, and generate responses. Understanding the data flow is crucial for both using the application effectively and contributing to its development.
 
+
 <img width="686" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/f32c281e-49f9-44de-a2e9-9a493e72657d">
+
+### Detailed Walkthrough
+
+1. **User Interaction**:
+   - Users interact with the application through a web-based interface where they can submit the document and interact in a chat space with the LLM.
+   - Document are processed as follows:
+      - Chunk up the text: The text within these documents is divided into manageable pieces or "chunks". This process is essential for handling large texts and improving the efficiency of the search and retrieval operations.
+      - Embeddings: Each text chunk is converted into a vector representation using embedding techniques. These embeddings capture the semantic meaning of the text and are used for matching queries with document content.
+      - ChromaDB: The embeddings are stored in ChromaDB, a database optimized for handling vector data, which facilitates quick retrieval based on vector similarity.
+
+3. **Retrieve and Rank**:
+   - In this stage, the system processes queries by finding the most relevant document chunks.
+   - Process:
+      - Query: This is the user’s input or question that the system needs to respond to.
+      - Get k nearest embeddings: The system retrieves the 'k' nearest embeddings from ChromaDB, which correspond to the chunks most relevant to the query. The default settings (k=30 and distance=cosine) indicate that it retrieves 30 closest matches based on cosine similarity.
+      - bge-reranker: This component reranks the retrieved embeddings based on BGE-RERANKER model to ensure the best matches are chosen for response generation. Top M=10 chunks are selected for prompt creation.
+
+4. **Response Generation**:
+   - This is the final stage where the system uses the retrieved information to generate a coherent response.
+   - Process:
+      - Construct prompt with contextual information and query: The system constructs a prompt that includes both the user's query and contextual information derived from the matched document chunks. This step is crucial for ensuring that the generated response is contextually relevant.
+      - Block Entropy AI: This is a component handling LLM tasks that takes the constructed prompt and generates a textual response.
+      - Generated output along with reference chunks: The final output includes not only the answer to the user's query but also references to the chunks of text from which the information was derived. This adds a layer of transparency and allows users to see the source of the information in the response.
+
+5. **Delivering the Response**:
+   - The generated response is sent back to the user interface, where it is displayed to the user as system chat and the references are provided as link which when clicked opens the page of file with highlighted chunks that had been used.
+
+This flow ensures that each user query is handled efficiently and accurately, providing a seamless experience from query to response.
 
 
 ## Contribution

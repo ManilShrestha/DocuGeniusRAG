@@ -18,7 +18,7 @@ cd web-ui
 python app.py
 ```
 The home page looks like this:
-<img width="1500" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/86a2e8af-71c9-4595-84b6-5f403684238b">
+<img width="800" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/86a2e8af-71c9-4595-84b6-5f403684238b">
 
 
 ## Usage
@@ -28,7 +28,8 @@ After setting up, you can start interacting with your documents:
 3. **Ask Questions**: Enter your question in the provided interface.
 4. **Receive Answers**: Get answers along with references to the document sections that provided the information.
 
-<img width="1500" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/5a635096-d996-4ce8-8cab-df5b65889d40">
+<img width="800" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/dab231fb-fdda-487a-9a94-ab085e700132">
+
 The links direct you to the page and highlights the text chunks used to generate the particular answer.
 
 ## Contribution

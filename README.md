@@ -35,12 +35,13 @@ After installing the necessary packages, you need to set up your environment var
    ```
    - Save this file. This file should not be committed to your version control system. Ensure `.env` is listed in your `.gitignore` file to prevent it from being uploaded.
 
+Go into web-ui directory and run the app.py script to launch the webserver.
 ```
 cd DocuGeniusRAG/web-ui
 python app.py
 ```
 After running the server, you can use the web app in your localhost. The home page looks like this:
-<img width="800" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/86a2e8af-71c9-4595-84b6-5f403684238b">
+<img width="1500" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/e27e180b-37d8-4c61-b8ce-3867df788c41">
 
 
 ## Usage

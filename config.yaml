@@ -1,2 +1,11 @@
 environment:
-  database_path: /home/ms5267@drexel.edu/DocuGeniusRAG/database/chromadb.db
+  database_path: </your/path/to/vectorDB/dbname.db>
+  chunk_size: 384     # Chunk size characters (not tokens)
+  max_num_refs: 10    # Number of references used to generate answer
+  vectordb_max_return_num_chunks: 30    # How many chunks to return from vector db
+
+models:
+  generator_model: be-research-llama3-70b    # Which generator model to use
+  base_url: https://api.blockentropy.ai/v1   # Base URL for BlockEntropy
+  
+  embedding_model: 'be-bge-embeddings'       # Embedding model used to convert text into embeddings

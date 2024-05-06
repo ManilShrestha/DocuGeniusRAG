@@ -17,14 +17,19 @@ pip install -r requirements.txt
 cd web-ui
 python app.py
 ```
+The home page looks like this:
+<img width="1500" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/86a2e8af-71c9-4595-84b6-5f403684238b">
 
 
 ## Usage
 After setting up, you can start interacting with your documents:
 
 1. **Upload Your Documents**: Currently supports PDF format.
-2. **Ask Questions**: Enter your question in the provided interface.
-3. **Receive Answers**: Get answers along with references to the document sections that provided the information.
+3. **Ask Questions**: Enter your question in the provided interface.
+4. **Receive Answers**: Get answers along with references to the document sections that provided the information.
+
+<img width="1500" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/5a635096-d996-4ce8-8cab-df5b65889d40">
+The links direct you to the page and highlights the text chunks used to generate the particular answer.
 
 ## Contribution
 Contributions are welcome! If you have ideas or find bugs, please open an issue or submit a pull request.

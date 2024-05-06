@@ -11,14 +11,15 @@ body, html {
 }
 
 header, footer {
-    background-color: #fff;
-    color: #333;
+    background-color: #e6f4f1;
+    color: #110035;
     text-align: center;
     padding: 10px 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: smaller;
 }
 
 /* Header styles */
@@ -33,7 +34,7 @@ header .nav-container {
 }
 
 header img {
-    height: 50px; /* Adjust based on your logo's dimensions */
+    height: 60px; /* Adjust based on your logo's dimensions */
 }
 
 /* Main content area */

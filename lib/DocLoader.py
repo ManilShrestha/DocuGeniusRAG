@@ -74,9 +74,27 @@ class MasterDocumentLoader(ABC):
 
 class PDFDocLoader(MasterDocumentLoader):
     def read_contents(self):
-        from pdfminer.high_level import extract_text
-        self.doc_text = extract_text(self.doc_path)
-        return self.doc_text
+        # from pdfminer.high_level import extract_text
+        # self.doc_text = extract_text(self.doc_path)
+        # return self.doc_text
+        # Open the provided PDF file
+
+        import fitz
+        document = fitz.open(self.doc_path)
+        
+        # Initialize a variable to store all the extracted text
+        all_text = ""
+        
+        # Loop through each page in the document
+        for page in document:
+            # Extract text from the current page
+            text = page.get_text() # type: ignore
+            all_text += text
+        
+        # Close the document
+        document.close()
+        
+        return all_text
 
 class DOCXDocLoader(MasterDocumentLoader):
     def read_contents(self):

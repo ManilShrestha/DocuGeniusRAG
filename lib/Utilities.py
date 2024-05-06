@@ -18,51 +18,52 @@ def normalize_text(text):
     return text 
 
 
-def highlight_text_in_pdf(file_path, output_path, sentences, consecutive_words=7):
-    """Highlights occurrences of any sequence of n consecutive words from the sentences in a PDF and returns the pages where any sentence was highlighted.
-
+def highlight_text_in_pdf(file_path, output_path, sentences):
+    """
+    Highlights occurrences of multiple sentences in a PDF and returns the pages where any sentence was highlighted.
+    
     Args:
-        file_path (Str): filepath of the pdf to highlight
-        output_path (Str): filepath of output pdf that has been highlighted
-        sentences (List[Str]): List of strings that needs to be highlighted
-        consecutive_words (int, optional): The overlap needed to be considered match. Defaults to 7.
+        file_path (str): Path to the PDF file.
+        output_path (str): Path where the modified PDF will be saved.
+        sentences (list of str): List of sentences to search for and highlight in the PDF.
 
     Returns:
-        _type_: _description_
+        dict: A dictionary where keys are page numbers and values are lists of sentences highlighted on that page.
     """
     document = fitz.open(file_path)
-    highlighted_pages = {}
+    highlighted_pages = {}  # Dictionary to store page numbers and the sentences highlighted on them
 
-    # Normalize sentences before searching
-    normalized_sentences = [normalize_text(sentence) for sentence in sentences]
+    # Loop through each page in the PDF
+    for page_number, page in enumerate(document, start=1):  # type: ignore # start=1 for human-readable page numbers
+        found_sentences = []  # List to store sentences found on the current page
 
-    for page_number, page in enumerate(document, start=1): #type:ignore
-        page_text = normalize_text(page.get_text("text"))
-        found_sentences = []
+        # Check each sentence in the list
+        for sentence in sentences:
+            # print(sentence)
+            # Search for the sentence in the current page
+            sentence = normalize_text(sentence)
 
-        # Generate sliding windows of 4 words for each sentence
-        for sentence in normalized_sentences:
-            words = sentence.split()
-
-            if len(words) < consecutive_words:
-                continue  # Skip sentences with fewer than 4 words
-            windows = [' '.join(words[i:i+consecutive_words]) for i in range(len(words) - consecutive_words-1)]
-
-            for window in windows:
-                instances = page.search_for(window)
-                for inst in instances:
+            text_instances = page.search_for(sentence)
+            
+            # If text instances are found, highlight them
+            if text_instances:
+                for inst in text_instances:
                     highlight = page.add_highlight_annot(inst)
-                    highlight.update()
-                    if window not in found_sentences:
-                        found_sentences.append(window)
+                    highlight.update()  # Apply the highlighting
+                
+                # Add the sentence to the list of found sentences for this page
+                if sentence not in found_sentences:
+                    found_sentences.append(sentence)
 
+        # If any sentences were found and highlighted, add to the highlighted_pages dictionary
         if found_sentences:
             highlighted_pages[page_number] = found_sentences
 
+    # Save the modified PDF with highlights
     document.save(output_path)
     document.close()
-    return output_path, highlighted_pages
 
+    return output_path, highlighted_pages
 
 def log_info(log_message):
 	print( datetime.now().strftime("%H:%M:%S"),":\t ", log_message , "\n")
@@ -96,3 +97,40 @@ def preprocess_collection_name(name):
         name = name[:-1] + 'a'  # append 'a' if the last character is not alphanumeric
     
     return name
+
+
+def get_ranked_page_source(highlighted_page_references, normalized_references):
+    """
+    Searches for text snippets from the 'highlighted_page_references' within the 'normalized_references' list,
+    ranks them according to their position in 'normalized_references', and returns a sorted list of these rankings
+    along with the corresponding file path and page number where each snippet was found.
+
+    Args:
+        highlighted_page_references (list of tuples): A list where each tuple contains a file path and a dictionary.
+            The dictionary keys are page numbers (int), and values are lists of text snippets (str) found on that page.
+        normalized_references (list of str): A list of normalized reference strings. These strings are checked against
+            the snippets found in 'highlighted_page_references'.
+
+    Returns:
+        list of lists: A sorted list where each sublist contains:
+            - index (int): The zero-based index of the snippet in 'normalized_references' indicating the rank.
+            - path (str): The path of the PDF file where the snippet was found.
+            - page_num (int): The page number where the snippet was found.
+            - snippet (str): The text snippet that matched the normalized reference.
+
+    The return list is sorted by 'index', meaning snippets are ranked in the order they appear in 'normalized_references'.
+    """
+    import os
+    results = []
+
+    for path, content_dict in highlighted_page_references:
+        path = os.path.basename(path)
+        for page_num, snippets in content_dict.items():
+            for snippet in snippets:
+                if snippet in normalized_references:
+                    index = normalized_references.index(snippet)
+                    results.append([index, path, page_num, snippet])
+
+    results.sort(key=lambda x:x[0])
+    
+    return results

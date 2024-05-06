@@ -119,23 +119,30 @@ def retrieve_generate():
     generated_answer = generator.generate_answer(query, references, temperature=0)
     log_info('Answer generated. Highlighting the chunks...')
     
-    output_paths = []
-    highlighted_page_nums = []
-    # print(set(reference_source),references)
+    highlighted_page_references = []
 
-    for source in set(reference_source):
-        output_path, pages = highlight_text_in_pdf(f'static/uploads/{source}', f'static/highlighted/{source}', references,10)
-        output_paths.append((output_path, pages))
-        highlighted_page_nums.extend([(page, source) for page in pages])
+    for source in distinct_ordered(reference_source):
+        output_path, pages = highlight_text_in_pdf(f'static/uploads/{source}', f'static/highlighted/{source}', references)
+        highlighted_page_references.append((output_path, pages))
+        # highlighted_page_nums.extend([(page, source) for page in pages])
+ 
+    normalized_references = [normalize_text(r) for r in references]
+
+    # The pages and source are not ranked as per the ranking scores, get_ranked_page_source reranks them based on the reference indices
+    ranked_page_references = get_ranked_page_source(highlighted_page_references, normalized_references)
+    highlighted_page_nums = [(item[2], item[1]) for item in ranked_page_references]
 
     log_info('Highlighting complete. Preparing response...')
-    # log_info(f'{highlighted_page_nums}, {output_paths}')
 
     return jsonify({
         'generated_text': generated_answer,
         'highlighted_page_nums': highlighted_page_nums,
-        'highlighted_file_paths': output_paths
+        'highlighted_file_paths': highlighted_page_references
     }), 200
+
+
+def distinct_ordered(items):
+    return list(dict.fromkeys(items))
 
 if __name__ == '__main__':
     app.run(debug=True, port=9874)

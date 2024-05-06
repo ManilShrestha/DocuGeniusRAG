@@ -1,2 +1,11 @@
 environment:
   database_path: /home/ms5267@drexel.edu/DocuGeniusRAG/database/chromadb.db
+  chunk_size: 384
+  max_num_refs: 10
+  vectordb_max_return_num_chunks: 30
+
+models:
+  generator_model: be-research-llama3-70b
+  base_url: https://api.blockentropy.ai/v1
+  
+  embedding_model: 'be-bge-embeddings'

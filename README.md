@@ -16,6 +16,9 @@ cd DocuGeniusRAG
 pip install -r requirements.txt
 ```
 
+Note: Copy `config.example.yaml` to `config.yaml` and modify it with your local settings:
+
+
 ## Environment Setup
 After installing the necessary packages, you need to set up your environment variables to ensure the application can communicate securely with the Block Entropy API.
 

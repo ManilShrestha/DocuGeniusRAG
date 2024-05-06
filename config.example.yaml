@@ -1,5 +1,5 @@
 environment:
-  database_path: /home/ms5267@drexel.edu/DocuGeniusRAG/database/chromadb.db
+  database_path: /path/to/your/vectordb/databasename.db
   chunk_size: 384
   max_num_refs: 10
   vectordb_max_return_num_chunks: 30

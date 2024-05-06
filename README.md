@@ -14,10 +14,29 @@ To get started, clone this repository and follow the setup instructions provided
 git clone https://github.com/yourrepository/DocuGeniusRAG.git
 cd DocuGeniusRAG
 pip install -r requirements.txt
-cd web-ui
+```
+
+## Environment Setup
+After installing the necessary packages, you need to set up your environment variables to ensure the application can communicate securely with the Block Entropy API.
+
+### Configure API Access
+1. **Obtain and API Key**: You must have an API key to interact with the Block Entropy API. If you do not have one, you can request it by signing up at: [Block Entropy AI](https://blockentropy.ai/).
+2. **Setup Your Environment Variables**:
+   - Create a `.env` file in the root directory of the project.
+   ```
+   touch .env
+   ```
+   - Open the `.env` file and add your Block Entropy API key as follows:
+   ```
+   BE_API_KEY=your_block_entropy_api_key_here
+   ```
+   - Save this file. This file should not be committed to your version control system. Ensure `.env` is listed in your `.gitignore` file to prevent it from being uploaded.
+
+```
+cd DocuGeniusRAG/web-ui
 python app.py
 ```
-The home page looks like this:
+After running the server, you can use the web app in your localhost. The home page looks like this:
 <img width="800" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/86a2e8af-71c9-4595-84b6-5f403684238b">
 
 

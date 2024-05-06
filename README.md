@@ -55,6 +55,13 @@ After setting up, you can start interacting with your documents:
 
 The links direct you to the page and highlights the text chunks used to generate the particular answer.
 
+## Data Flow Diagram
+
+The Data Flow Diagram (DFD) provides a visual representation of the data processing within our Retrieval-Augmented Generation (RAG) application. This diagram helps to illustrate the flow of data between the application's components and how these components interact to process user queries, retrieve relevant information, and generate responses. Understanding the data flow is crucial for both using the application effectively and contributing to its development.
+
+<img width="686" alt="image" src="https://github.com/ManilShrestha/DocuGeniusRAG/assets/20830075/f32c281e-49f9-44de-a2e9-9a493e72657d">
+
+
 ## Contribution
 Contributions are welcome! If you have ideas or find bugs, please open an issue or submit a pull request.
 
